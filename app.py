@@ -4,67 +4,67 @@ from flask_migrate import Migrate
 from flask_marshmallow import Marshmallow
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgres://vgdemwsf:ZiMXizCSA-Rmjq5Wz2xUT0cRin68bpim@ziggy.db.elephantsql.com:5432/vgdemwsf"
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgres://anqlvama:NJcfHCsk6OYBFVeDpnJb0MovkI8RcAWi@ziggy.db.elephantsql.com:5432/anqlvama"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
-class Dish(db.Model):
-  __tablename__ = 'dishes'
+class Tank(db.Model):
+  __tablename__ = 'tempTank'
 
   id = db.Column(db.Integer, primary_key = True)
-  name = db.Column(db.String(), unique=True, nullable=False)
-  vegan = db.Column(db.Boolean(), nullable=False)
-  cost = db.Column(db.Float(), nullable=False)
-  img = db.Column(db.String(), nullable=False)
+  location = db.Column(db.String(), unique=True, nullable=False)
+  lat = db.Column(db.String(), nullable=False)
+  long = db.Column(db.String(), nullable=False)
+  percentage_full = db.Column(db.Integer(), nullable=False)
 
-class DishSchema(ma.SQLAlchemySchema):
+class TankSchema(ma.SQLAlchemySchema):
   class Meta:
-    model = Dish
-    fields = ("id", "name", "vegan", "cost", "img")
+    model = Tank
+    fields = ("id", "location", "lat", "long", "percentage_full")
 
 db.init_app(app) # do i need this?
 migrate = Migrate(app, db) # do i need this?
 
-@app.route("/dish")
-def get_dishes():
-  dishes = Dish.query.all()
-  dishes_json = DishSchema(many=True).dump(dishes)
-  return jsonify(dishes_json)
+@app.route("/tank")
+def get_tempTank():
+  tempTank = Tank.query.all()
+  tempTank_json = TankSchema(many=True).dump(tempTank)
+  return jsonify(tempTank_json)
 
-@app.route('/dish', methods=["POST"])
+@app.route('/tank', methods=["POST"])
 def test():
-  newDish = Dish(
-    name=request.json["name"], 
-    vegan=request.json["vegan"], 
-    cost=request.json["cost"], 
-    img=request.json["img"]
+  newTank = Tank(
+    location=request.json["location"], 
+    lat=request.json["lat"], 
+    long=request.json["long"], 
+    percentage_full=request.json["percentage_full"]
   )
-  db.session.add(newDish)
+  db.session.add(newTank)
   db.session.commit()
-  return DishSchema().dump(newDish)
+  return TankSchema().dump(newTank)
 
-@app.route("/dish/<int:id>", methods=["PATCH"])
-def update_dish(id):
-  dish = Dish.query.get(id)
+@app.route("/tank/<int:id>", methods=["PATCH"])
+def update_tank(id):
+  tank = Tank.query.get(id)
   update = request.json
 
-  if "name" in update:
-    dish.name = update["name"]
-  if "vegan" in update:
-    dish.vegan = update["vegan"]
-  if "cost" in update:
-    dish.cost = update["cost"]
-  if "img" in update:
-    dish.img = update["img"]
+  if "location" in update:
+    tank.location = update["location"]
+  if "lat" in update:
+    tank.lat = update["lat"]
+  if "long" in update:
+    tank.long = update["long"]
+  if "percentage_full" in update:
+    tank.percentage_full = update["percentage_full"]
   db.session.commit()
-  return DishSchema().dump(dish)
+  return TankSchema().dump(tank)
 
-@app.route("/dish/<int:id>", methods=["DELETE"])
-def delete_dish(id):
-  dish = Dish.query.get(id)
-  db.session.delete(dish)
+@app.route("/tank/<int:id>", methods=["DELETE"])
+def delete_tank(id):
+  tank = Tank.query.get(id)
+  db.session.delete(tank)
   db.session.commit()
   return {
     "success": True
